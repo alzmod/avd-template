@@ -177,7 +177,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "apiVersion": "2015-06-15",
-      "name": "[concat(parameters('vmName'),'/NvidiaGpuDriverWindows')]",
+      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'NvidiaGpuDriverWindows')]",
       "location": "[parameters('location')]",
       "properties": {
         "publisher": "Microsoft.HpcCompute",

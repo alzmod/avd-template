@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "752701834769357115"
+      "templateHash": "7733993604820662766"
     }
   },
   "parameters": {
@@ -46,10 +46,10 @@
         "description": "Virtual machine size"
       }
     },
-    "virtualMachineImageReference": {
-      "type": "object",
+    "imageResourceId": {
+      "type": "string",
       "metadata": {
-        "description": "Virtual machine image reference"
+        "description": "Virtual machine image resource ID from Shared Image Gallery"
       }
     },
     "adminUsername": {
@@ -136,10 +136,7 @@
             "deleteOption": "Delete"
           },
           "imageReference": {
-            "publisher": "[parameters('virtualMachineImageReference').publisher]",
-            "offer": "[parameters('virtualMachineImageReference').offer]",
-            "sku": "[parameters('virtualMachineImageReference').sku]",
-            "version": "[parameters('virtualMachineImageReference').version]"
+            "id": "[parameters('imageResourceId')]"
           }
         },
         "networkProfile": {

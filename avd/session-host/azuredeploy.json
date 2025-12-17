@@ -19,19 +19,7 @@
     "subnetResourceId": {
       "type": "string",
       "metadata": {
-        "description": "Set this to true if creating a new network"
-      }
-    },
-    "hostPoolResourceId": {
-      "type": "string",
-      "metadata": {
-        "description": "Host pool resource id"
-      }
-    },
-    "registrationInfoToken": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Host pool registration info token"
+        "description": "Subnet resource ID for the network interface"
       }
     },
     "virtualMachineName": {
@@ -63,9 +51,6 @@
       "metadata": {
         "description": "Virtual machine resource admin password"
       }
-    },
-    "artifactsLocation": {
-      "type": "string"
     }
   },
   "resources": [

@@ -139,7 +139,7 @@
       "properties": {
         "publisher": "Microsoft.HpcCompute",
         "type": "NvidiaGpuDriverWindows",
-        "typeHandlerVersion": "1.6",
+        "typeHandlerVersion": "1.10",
         "autoUpgradeMinorVersion": true,
         "settings": {}
       },

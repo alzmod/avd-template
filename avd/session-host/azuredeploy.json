@@ -19,7 +19,19 @@
     "subnetResourceId": {
       "type": "string",
       "metadata": {
-        "description": "Subnet resource ID for the network interface"
+        "description": "Set this to true if creating a new network"
+      }
+    },
+    "hostPoolResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "Host pool resource id"
+      }
+    },
+    "registrationInfoToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Host pool registration info token"
       }
     },
     "virtualMachineName": {
@@ -50,6 +62,37 @@
       "type": "securestring",
       "metadata": {
         "description": "Virtual machine resource admin password"
+      }
+    },
+    "artifactsLocation": {
+      "type": "string"
+    },
+    "domainName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Domain name for on-premises domain join"
+      }
+    },
+    "domainJoinUsername": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Domain join username"
+      }
+    },
+    "domainJoinPassword": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Domain join password"
+      }
+    },
+    "domainJoinOUPath": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Organizational Unit path for domain join"
       }
     }
   },
@@ -129,6 +172,60 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}', parameters('virtualMachineName')))]"
+      ]
+    },
+    {
+      "condition": "[not(equals(parameters('domainName'), ''))]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2024-03-01",
+      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'JsonADDomainExtension')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "name": "[parameters('domainName')]",
+          "ouPath": "[parameters('domainJoinOUPath')]",
+          "user": "[format('{0}\\{1}', parameters('domainName'), parameters('domainJoinUsername'))]",
+          "restart": true,
+          "options": 3
+        },
+        "protectedSettings": {
+          "password": "[parameters('domainJoinPassword')]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2024-03-01",
+      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'MicrosoftPowershellDSC')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.73",
+        "settings": {
+          "modulesUrl": "[parameters('artifactsLocation')]",
+          "configurationFunction": "Configuration.ps1\\AddSessionHost",
+          "properties": {
+            "hostPoolName": "[last(split(parameters('hostPoolResourceId'), '/'))]",
+            "aadJoin": true
+          }
+        },
+        "protectedSettings": {
+          "properties": {
+            "registrationInfoToken": "[parameters('registrationInfoToken')]"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('virtualMachineName'), 'JsonADDomainExtension')]",
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
       ]
     }
   ]

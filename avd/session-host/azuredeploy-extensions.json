@@ -100,7 +100,7 @@
                 "typeHandlerVersion": "2.73",
                 "settings": {
                     "modulesUrl": "[parameters('artifactsLocation')]",
-                    "configurationFunction": "Configuration.ps1/AddSessionHost",
+                    "configurationFunction": "Configuration.ps1\\AddSessionHost",
                     "properties": {
                         "hostPoolName": "[last(split(parameters('hostPoolResourceId'), '/'))]",
                         "aadJoin": true

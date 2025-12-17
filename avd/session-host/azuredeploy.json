@@ -130,22 +130,6 @@
       "dependsOn": [
         "[resourceId('Microsoft.Network/networkInterfaces', format('nic-{0}', parameters('virtualMachineName')))]"
       ]
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "apiVersion": "2015-06-15",
-      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'NvidiaGpuDriverWindows')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "publisher": "Microsoft.HpcCompute",
-        "type": "NvidiaGpuDriverWindows",
-        "typeHandlerVersion": "1.10",
-        "autoUpgradeMinorVersion": true,
-        "settings": {}
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
-      ]
     }
   ]
 }

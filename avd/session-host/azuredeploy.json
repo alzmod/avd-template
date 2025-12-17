@@ -66,34 +66,6 @@
     },
     "artifactsLocation": {
       "type": "string"
-    },
-    "domainName": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Domain name for on-premises domain join"
-      }
-    },
-    "domainJoinUsername": {
-      "type": "securestring",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Domain join username"
-      }
-    },
-    "domainJoinPassword": {
-      "type": "securestring",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Domain join password"
-      }
-    },
-    "domainJoinOUPath": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Organizational Unit path for domain join"
-      }
     }
   },
   "resources": [
@@ -187,79 +159,6 @@
         "settings": {}
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
-      ]
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "apiVersion": "2024-03-01",
-      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'WaitAfterGpuDriver')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "publisher": "Microsoft.Compute",
-        "type": "CustomScriptExtension",
-        "typeHandlerVersion": "1.10",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "commandToExecute": "powershell -Command \"Write-Host 'Waiting 10 minutes for GPU driver initialization...'; Start-Sleep -Seconds 600; Write-Host 'Wait period completed.'\""
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('virtualMachineName'), 'NvidiaGpuDriverWindows')]"
-      ]
-    },
-    {
-      "condition": "[not(equals(parameters('domainName'), ''))]",
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "apiVersion": "2024-03-01",
-      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'JsonADDomainExtension')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "publisher": "Microsoft.Compute",
-        "type": "JsonADDomainExtension",
-        "typeHandlerVersion": "1.3",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "name": "[parameters('domainName')]",
-          "ouPath": "[parameters('domainJoinOUPath')]",
-          "user": "[format('{0}\\{1}', parameters('domainName'), parameters('domainJoinUsername'))]",
-          "restart": true,
-          "options": 3
-        },
-        "protectedSettings": {
-          "password": "[parameters('domainJoinPassword')]"
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]",
-        "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('virtualMachineName'), 'WaitAfterGpuDriver')]"
-      ]
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "apiVersion": "2024-03-01",
-      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'MicrosoftPowershellDSC')]",
-      "location": "[parameters('location')]",
-      "properties": {
-        "publisher": "Microsoft.Powershell",
-        "type": "DSC",
-        "typeHandlerVersion": "2.73",
-        "settings": {
-          "modulesUrl": "[parameters('artifactsLocation')]",
-          "configurationFunction": "Configuration.ps1\\AddSessionHost",
-          "properties": {
-            "hostPoolName": "[last(split(parameters('hostPoolResourceId'), '/'))]",
-            "aadJoin": true
-          }
-        },
-        "protectedSettings": {
-          "properties": {
-            "registrationInfoToken": "[parameters('registrationInfoToken')]"
-          }
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('virtualMachineName'), 'JsonADDomainExtension')]",
         "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
       ]
     }

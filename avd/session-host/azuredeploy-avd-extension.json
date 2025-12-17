@@ -1,0 +1,67 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+        "description": "Deploy VM extensions for domain join and session host configuration"
+    },
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "virtualMachineName": {
+            "type": "string",
+            "metadata": {
+                "description": "Virtual machine resource name"
+            }
+        },
+        "hostPoolResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "Host pool resource id"
+            }
+        },
+        "registrationInfoToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Host pool registration info token"
+            }
+        },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "Location of DSC artifacts"
+            }
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2024-03-01",
+            "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'AVDSessionHost')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.73",
+                "settings": {
+                    "modulesUrl": "[parameters('artifactsLocation')]",
+                    "configurationFunction": "Configuration.ps1\\AddSessionHost",
+                    "properties": {
+                        "hostPoolName": "[last(split(parameters('hostPoolResourceId'), '/'))]",
+                        "aadJoin": true
+                    }
+                },
+                "protectedSettings": {
+                    "properties": {
+                        "registrationInfoToken": "[parameters('registrationInfoToken')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        }
+    ]
+}

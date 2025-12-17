@@ -9,6 +9,48 @@
     }
   },
   "parameters": {
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Virtual machine resource admin password"
+      }
+    },
+    "adminUsername": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Virtual machine resource admin username"
+      }
+    },
+    "domainJoinOUPath": {
+      "type": "string",
+      "metadata": {
+        "description": "Organizational Unit path for domain join"
+      }
+    },
+    "domainJoinPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Domain join password"
+      }
+    },
+    "domainJoinUsername": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Domain join username"
+      }
+    },
+    "domainName": {
+      "type": "string",
+      "metadata": {
+        "description": "Domain name for on-premises domain join"
+      }
+    },
+    "imageResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual machine image resource ID from Shared Image Gallery"
+      }
+    },
     "location": {
       "type": "string",
       "defaultValue": "[resourceGroup().location]",
@@ -19,19 +61,7 @@
     "subnetResourceId": {
       "type": "string",
       "metadata": {
-        "description": "Set this to true if creating a new network"
-      }
-    },
-    "hostPoolResourceId": {
-      "type": "string",
-      "metadata": {
-        "description": "Host pool resource id"
-      }
-    },
-    "registrationInfoToken": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Host pool registration info token"
+        "description": "Subnet resource ID"
       }
     },
     "virtualMachineName": {
@@ -44,55 +74,6 @@
       "type": "string",
       "metadata": {
         "description": "Virtual machine size"
-      }
-    },
-    "imageResourceId": {
-      "type": "string",
-      "metadata": {
-        "description": "Virtual machine image resource ID from Shared Image Gallery"
-      }
-    },
-    "adminUsername": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Virtual machine resource admin username"
-      }
-    },
-    "adminPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Virtual machine resource admin password"
-      }
-    },
-    "artifactsLocation": {
-      "type": "string"
-    },
-    "domainName": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Domain name for on-premises domain join"
-      }
-    },
-    "domainJoinUsername": {
-      "type": "securestring",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Domain join username"
-      }
-    },
-    "domainJoinPassword": {
-      "type": "securestring",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Domain join password"
-      }
-    },
-    "domainJoinOUPath": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Organizational Unit path for domain join"
       }
     }
   },
@@ -175,10 +156,9 @@
       ]
     },
     {
-      "condition": "[not(equals(parameters('domainName'), ''))]",
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "apiVersion": "2024-03-01",
-      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'JsonADDomainExtension')]",
+      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'ADDomainJoin')]",
       "location": "[parameters('location')]",
       "properties": {
         "publisher": "Microsoft.Compute",
@@ -201,31 +181,20 @@
       ]
     },
     {
+      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'AmdGpuDriverWindows')]",
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "apiVersion": "2024-03-01",
-      "name": "[format('{0}/{1}', parameters('virtualMachineName'), 'MicrosoftPowershellDSC')]",
+      "apiVersion": "2015-06-15",
       "location": "[parameters('location')]",
       "properties": {
-        "publisher": "Microsoft.Powershell",
-        "type": "DSC",
-        "typeHandlerVersion": "2.73",
-        "settings": {
-          "modulesUrl": "[parameters('artifactsLocation')]",
-          "configurationFunction": "Configuration.ps1\\AddSessionHost",
-          "properties": {
-            "hostPoolName": "[last(split(parameters('hostPoolResourceId'), '/'))]",
-            "aadJoin": true
-          }
-        },
-        "protectedSettings": {
-          "properties": {
-            "registrationInfoToken": "[parameters('registrationInfoToken')]"
-          }
-        }
+        "publisher": "Microsoft.HpcCompute",
+        "type": "AmdGpuDriverWindows",
+        "typeHandlerVersion": "1.1",
+        "autoUpgradeMinorVersion": true,
+        "settings": {}
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('virtualMachineName'), 'JsonADDomainExtension')]",
-        "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]"
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachineName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', parameters('virtualMachineName'), 'ADDomainJoin')]"
       ]
     }
   ]
